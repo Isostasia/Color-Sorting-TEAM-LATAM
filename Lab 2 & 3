@@ -5,7 +5,7 @@ MODULE Module1
     CONST robtarget Clr_pt:=[[337.642338862,-882.982367871,1027.910963078],[0.114842297,-0.123329667,0.70135775,-0.692602589],[-1,0,-2,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
     VAR num counter:=0;     !Counter, its purpose is run the "if statement" only in the first cycle
     
-PROC main()
+PROC main()     !Verified program sequence according to lab 2 sheet
     counter:=counter+1;
     IF counter=1 THEN       !first sequence, should send PPNP and Robot home no matter what 
         ResetDOs;
@@ -13,7 +13,7 @@ PROC main()
         Robot_Home;
     ENDIF
     IF DI1=0 Robot_Home;
-    IF DI7=0 PPNP_Home;  !DI7 1 when PPNP is HOME, just moving to home
+    IF DI7=1 PPNP_Home;  !PPNP is DI7=0 because prof want it in this way
     Request_Part;
     !Wait DI12 moved to the first line of PPNP_Sequence
     PPNP_Sequence;
@@ -23,7 +23,7 @@ PROC main()
 ENDPROC 
 
 PROC Robot_Home () 
-    Movej home, v800, z50, Servo\WObj:=wobj0;
+    MoveJ home, v800, z50, Servo\WObj:=wobj0;
     WaitDI DI1,1;      !Wait Robot home
 ENDPROC 
 
@@ -45,16 +45,17 @@ PROC Color_Sorting ()
     Robot_Home;
 ENDPROC 
 
-PROC PPNP_Home ()
+PROC PPNP_Home () !Home sequence according to lab 3 sheet, 2 extra steps in case the program stopped at half way.
     PPNP_GRIPO;
+    PPNP_UP;
     PPNP_RET;
     PPNP_SWING_CONV;
-    PPNP_DOWN; 
-    WaitDI DI7,1;   !PPNP home
+    WaitDI DI7,0;   !PPNP home
 ENDPROC 
 
 PROC PPNP_Sequence ()
-    WaitDI DI12,1; !same idea as WaitDI DI16 on Pick_up
+    WaitDI DI12,1; !same idea as WaitDI DI16 on Pick_up, verified PPNP according to lab 3 sheet
+    PPNP_DOWN;
     PPNP_EXTEND;  
     PPNP_GRIPC; 
     PPNP_UP;
@@ -71,8 +72,8 @@ PROC Pick_up ()
     WaitDI DI16, 1;         !Part present on stand, professor suggested this change
     Open_grip; 
     MoveJ offs(Pick, 0, 0, 120), v800, z50, Servo\WObj:=wobj0; 
-    MoveJ offs(Pick, 0, 0, 80), v200, z0, Servo\WObj:=wobj0;        !Use z0 for drop and pick to move the robot at the exact desired position without stop, professor suggested this change and explained
-    MoveL Pick, v100, fine, Servo;      !Use less speed at picking the object and displacing it to drop point because the object may fall, professor suggested this change and explained.
+    MoveJ offs(Pick, 0, 0, 80), v200, z0, Servo\WObj:=wobj0;        !Use z0 for drop and pick to move the robot at the exact desired position without stop, professor suggested this change and explained it
+    MoveL Pick, v100, fine, Servo;      !Use less speed at picking the object and displacing it to drop point because the object may fall, professor suggested this change and explained it
     Close_grip; 
     MoveL offs(Pick, 0, 0, 80), v100, z50, Servo\WObj:=wobj0;
 ENDPROC
@@ -102,7 +103,7 @@ PROC Red ()
 ENDPROC
 
 PROC Invalid () 
-    MoveJ Offs(Drop,0,426,50),v200,z50,Servo\WObj:=wobj0;
+    MoveJ Offs(Drop,0,426,50),v200,z0,Servo\WObj:=wobj0;
     MoveL Offs(Drop,0,426,0),v100,fine,Servo\WObj:=wobj0;
     Open_grip; 
 ENDPROC 
@@ -181,7 +182,7 @@ PROC ResetDOs () !-------------Avoid signal conflicts, better reset everything
         Reset DO15;
         Reset DO16;
         WaitTime .3;    !Wait one PLC cycle
-        Set DO5;        !Set Default DOs, reset DO12 NOT setting DO12
+        Set DO6;        !Setting this DO help us to verify if Reset DOs works
         Set DO8;
         Set DO10;
     ENDPROC
