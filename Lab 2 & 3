@@ -1,74 +1,91 @@
-MODULE Color_Sort
-    CONST robtarget clear_pt2:=[[-606.271010043,-908.070022175,1068.169008831],[0.382626429,0.923741989,0.00660333,0.015942066],[-2,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-    CONST robtarget yellow_drop:=[[1092.897987517,28.790760268,935.026601797],[0.251312287,0.656605186,0.654305892,0.278559803],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-    CONST robtarget red_drop:=[[1092.897991137,-182.593401397,935.026593544],[0.251312287,0.65660519,0.654305887,0.278559805],[-1,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-    CONST robtarget invalid_drop:=[[1092.897986464,247.275188638,935.026598002],[0.251312285,0.656605198,0.654305885,0.278559795],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-    CONST robtarget clear_pt:=[[640.414287616,-606.478358595,1050.737981856],[0.338782558,0.857016152,0.353227751,0.161182657],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-    CONST robtarget pickp:=[[-839.854354762,-895.910435279,536.485036426],[0.713222679,0.700670782,0.006191392,0.01831755],[-2,-1,1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-    CONST robtarget home:=[[749.999995643,24,997.364],[0.012201497,-0.70700156,-0.707001444,-0.012201468],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-    PERS tooldata Servo:=[TRUE,[[24,0,124.136],[0.999851,0,0.0172555,0]],[0.215,[10.3925,12.3,48.8705],[1,0,0,0],0.00021,0.00024,0.00009]];
+MODULE Module1 !Maintain the module name as Module1 for some reason the program doesn't run well it other name.
+!    CONST robtarget clear_pt2:=[[-606.271010043,-908.070022175,1068.169008831],[0.382626429,0.923741989,0.00660333,0.015942066],[-2,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+!    CONST robtarget yellow_drop:=[[1092.897987517,28.790760268,935.026601797],[0.251312287,0.656605186,0.654305892,0.278559803],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+!    CONST robtarget red_drop:=[[1092.897991137,-182.593401397,935.026593544],[0.251312287,0.65660519,0.654305887,0.278559805],[-1,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+!    CONST robtarget invalid_drop:=[[1092.897986464,247.275188638,935.026598002],[0.251312285,0.656605198,0.654305885,0.278559795],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+!    CONST robtarget clear_pt:=[[640.414287616,-606.478358595,1050.737981856],[0.338782558,0.857016152,0.353227751,0.161182657],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+!    CONST robtarget pickp:=[[-839.854354762,-895.910435279,536.485036426],[0.713222679,0.700670782,0.006191392,0.01831755],[-2,-1,1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+!    CONST robtarget home:=[[749.999995643,24,997.364],[0.012201497,-0.70700156,-0.707001444,-0.012201468],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+!    PERS tooldata Servo:=[TRUE,[[24,0,124.136],[0.999851,0,0.0172555,0]],[0.215,[10.3925,12.3,48.8705],[1,0,0,0],0.00021,0.00024,0.00009]];
+    CONST robtarget home:=[[905.329241265,-0.000355201,1097.158035643],[0.499995645,0.000004566,0.866027918,-0.00000192],[0,-1,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget Pick:=[[-855.650481109,-879.6815735,538.26500977],[0.459420878,-0.557005308,-0.545328613,0.425786622],[-2,0,-2,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget Drop:=[[1070.124956816,-226.534384055,961.94271237],[0.426943892,-0.44080113,0.561394557,-0.555202151],[-1,0,-2,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget Clr_pt:=[[337.642338862,-882.982367871,1027.910963078],[0.114842297,-0.123329667,0.70135775,-0.692602589],[-1,0,-2,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    VAR num counter:=0;     !Counter, its purpose is run the "if statement" only in the first cycle
     
-PROC main() 
-    Robot_Home; 
-    IF DI7 = 1 PPNP_Home;  !DI7 0 when PPNP is HOME
-    REQUEST_PART;
-    WaitDI DI12,1;          !Part present on conveyor
-    PPNP_Sequence;          !move part from conveyor to stand
+PROC main()
+    counter:=counter+1;
+!    TPWrite "The robot is counting, " \Num:=counter; begins with 1 to reset all DOs to avoid signal conflicts at restart, after repeat the step the value of counter is 2 so resetdos don't execute
+    IF counter=1 THEN       !first sequence, should send PPNP and Robot home no matter what 
+        ResetDOs;
+        PPNP_Home;
+        Robot_Home;
+    ENDIF
+    IF DI1=0 Robot_Home;
+    IF DI7=0 PPNP_Home;  !DI7 1 when PPNP is HOME, just movng to home
+    Request_Part;
+    PPNP_Sequence;          !Part present on conveyor
+          !move part from conveyor to stand
     Color_Sorting; 
-    Robot_Home; 
+    Robot_Home;
+    counter:=1;
+!    TPWrite "The robot is counting, " \Num:=counter; when it repeats the process reset the value again to 1 to maintain the counter in a lower number.
 ENDPROC 
 
 PROC Robot_Home () 
-    Movej home, v800, z50, Servo; 
+    Movej home, v800, z50, Servo\WObj:=wobj0;
     WaitDI DI1,1;      !Robot home
 ENDPROC 
 
-PROC REQUEST_PART()
+PROC Request_Part()
     PulseDO DO13;           !Reset color
     PulseDO DO12;           !Conveyor, request part
 ENDPROC
 
-PROC Color_Sorting () 
-    Pick;                 ! PICK PART AND MOVE ABOVE BOXES   
-    IF DI13=1 AND DI14=0 THEN       Yellow;               !movement Sudroutine
-    ELSEIF DI13=0 AND DI14=1 THEN   Red;                  !movement Sudroutine
-    ELSE                            Invalid;              !movement Sudroutine
-    ENDIF 
+PROC Color_Sorting ()
+    Pick_up;
+    MoveJ Clr_pt, v500, z200, Servo\WObj:=wobj0;
+    IF DI13=1 AND DI14=0 THEN 
+        Yellow;
+    ELSEIF DI14=1 AND DI13=0 THEN
+        Red;
+    ELSE
+        Invalid;
+    ENDIF
+    Robot_Home;
 ENDPROC 
 
-PROC PPNP_Home () 
-    PPNP_UP;
+PROC PPNP_Home ()
+    PPNP_GRIPO;
     PPNP_RET;
-    PPNP_SWING_CONV; 
-    PPNP_GRIPO; 
-    WaitDI DI7,0;   !PPNP home
+    PPNP_SWING_CONV;
+    PPNP_DOWN; 
+    WaitDI DI7,1;   !PPNP home
 ENDPROC 
 
-PROC PPNP_Sequence () 
-    PPNP_EXTEND; 
-    PPNP_DOWN; 
+PROC PPNP_Sequence ()
+    WaitDI DI12,1;
+    PPNP_EXTEND;  
     PPNP_GRIPC; 
     PPNP_UP;
     PPNP_RET; 
     PPNP_SWING_STAND; 
     PPNP_EXTEND;
     PPNP_DOWN;
-    PPNP_GRIPO; 
+    PPNP_GRIPO;
+    PPNP_UP;
     PPNP_HOME; 
-
 ENDPROC
 
 
-PROC Pick () 
+PROC Pick_up () 
     WaitDI DI16, 1;         !Part present on stand
     Open_grip; 
-    MoveJ offs(pickp, 0, 0, 120), v800, z50, Servo; 
-    MoveJ offs(pickp, 0, 0, 80), v200, z0, Servo; 
-    MoveL pickp, v100, fine, Servo; 
+    MoveJ offs(Pick, 0, 0, 120), v800, z50, Servo\WObj:=wobj0; 
+    MoveJ offs(Pick, 0, 0, 80), v200, z0, Servo\WObj:=wobj0; 
+    MoveL Pick, v100, fine, Servo; 
     Close_grip; 
-    MoveL offs(pickp, 0, 0, 80), v100, z50, Servo; 
-    MoveJ clear_pt2, v500, z50, Servo;
-    MoveJ clear_pt, v500, z50,Servo;
+    MoveL offs(Pick, 0, 0, 80), v100, z50, Servo\WObj:=wobj0;
 ENDPROC 
 PROC Open_grip() 
     Reset DO1; 
@@ -80,55 +97,61 @@ PROC Close_grip ()
 ENDPROC 
 
   !!! COLOR MOVEMENTS !!!
-PROC Yellow () 
-    MoveJ offs(yellow_drop,0,0,80),v200,z0,Servo;
-    MoveJ yellow_drop, v100, fine, Servo; 
+PROC Yellow ()          !Points changed for Offsets  
+    MoveJ Offs(Drop,0,213,50),v200,z0,Servo\WObj:=wobj0;
+    MoveL Offs(Drop,0,213,0),v100,fine,Servo\WObj:=wobj0;
     Open_grip; 
 ENDPROC 
 PROC Red () 
-    MoveJ offs(red_drop,0,0,80), v200, z0, Servo;
-    MoveJ red_drop, v100, fine, Servo; 
+    MoveJ Offs(Drop,0,0,80),v200,z0,Servo\WObj:=wobj0;
+    MoveL Drop,v100,fine,Servo\WObj:=wobj0;
     Open_grip; 
 ENDPROC 
 PROC Invalid () 
-    MoveJ offs(invalid_drop,0,0,80), v200, z0, Servo;
-    MoveJ invalid_drop, v100, fine, Servo; 
+    MoveJ Offs(Drop,0,426,50),v200,z50,Servo\WObj:=wobj0;
+    MoveL Offs(Drop,0,426,0),v100,fine,Servo\WObj:=wobj0;
     Open_grip; 
 ENDPROC 
 
 
 PROC PPNP_UP () 
-    Reset DO6; 
+    Reset DO6;
+    WaitDO DO6,0;
     Set DO5; 
     WaitTime 1; 
 ENDPROC 
 PROC PPNP_DOWN () 
-    Reset DO5; 
+    Reset DO5;
+    WaitDO DO5,0;
     Set DO6; 
     WaitTime 1; 
 ENDPROC
 PROC PPNP_SWING_STAND () 
-    Reset DO8; 
+    Reset DO8;
+    WaitDO DO8,0;
     Set DO7; 
     WaitTime 1; 
 ENDPROC
 PROC PPNP_SWING_CONV () 
-    Reset DO7; 
+    Reset DO7;
+    WaitDO DO7,0;
     Set DO8; 
     WaitTime 1; 
 ENDPROC 
 PROC PPNP_EXTEND () 
-    Reset DO10; 
+    Reset DO10;
+    WaitDO DO10,0;
     Set DO9; 
     WaitTime 1; 
 ENDPROC 
 PROC PPNP_RET () 
-    Reset DO9; 
+    Reset DO9;
+    WaitDO DO9,0;
     Set DO10; 
     WaitTime 0.5; 
 ENDPROC 
 PROC PPNP_GRIPO () 
-    Reset DO11; 
+    Reset DO11;
     WaitTime 1; 
 ENDPROC 
 PROC PPNP_GRIPC () 
@@ -137,14 +160,45 @@ PROC PPNP_GRIPC ()
 ENDPROC 
 
 ! DUMMY
-PROC Teach()
-    MoveL pickp,v1000,z100,Servo\WObj:=wobj0;
-    MoveL clear_pt2,v1000,z100,Servo\WObj:=wobj0;
-    MoveL yellow_drop,v1000,z100,Servo\WObj:=wobj0;
-    MoveL red_drop,v1000,z100,Servo\WObj:=wobj0;
-    MoveL invalid_drop,v1000,z100,Servo\WObj:=wobj0;
-    MoveL clear_pt,v1000,z100,Servo\WObj:=wobj0;
+PROC Teach()        !simplifying points, reducing the space in the memory (hypothesis: maybe this put more load on the CPU)
+!    MoveL pickp,v1000,z100,Servo\WObj:=wobj0;
+!    MoveL clear_pt2,v1000,z100,Servo\WObj:=wobj0;
+!    MoveL yellow_drop,v1000,z100,Servo\WObj:=wobj0;
+!    MoveL red_drop,v1000,z100,Servo\WObj:=wobj0;
+!    MoveL invalid_drop,v1000,z100,Servo\WObj:=wobj0;
+!    MoveL clear_pt,v1000,z100,Servo\WObj:=wobj0;  
+    MoveL Pick,v1000,z100,Servo\WObj:=wobj0;
+    MoveL Clr_pt,v1000,z100,Servo\WObj:=wobj0;
+    MoveL Drop,v1000,z100,Servo\WObj:=wobj0;
     MoveL home,v1000,z100,Servo\WObj:=wobj0;
 ENDPROC
 
+!------Set everything for run the program---------
+
+PROC ResetDOs () !-------------Avoid signal conflicts, better reset everything
+        Reset DO1;
+        Reset DO2;
+        Reset DO3;
+        Reset DO4;
+!        Set DO5;
+        Reset DO5;
+        Reset DO6;
+        Reset DO7;
+!        Set DO8;
+        Reset DO8;
+        Reset DO9;
+!        Set DO10;
+        Reset DO10;
+        Reset DO11;
+!        Set DO12;
+        Reset DO12;
+        Reset DO13;
+        Reset DO14;
+        Reset DO15;
+        Reset DO16;
+        WaitTime .3;    !Wait one PLC cycle
+        Set DO5;        !Set Default DOs, reset DO12 NOT setting DO12
+        Set DO8;
+        Set DO10;
+    ENDPROC
 ENDMODULE
