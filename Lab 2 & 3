@@ -1,0 +1,150 @@
+MODULE Color_Sort
+    CONST robtarget clear_pt2:=[[-606.271010043,-908.070022175,1068.169008831],[0.382626429,0.923741989,0.00660333,0.015942066],[-2,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget yellow_drop:=[[1092.897987517,28.790760268,935.026601797],[0.251312287,0.656605186,0.654305892,0.278559803],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget red_drop:=[[1092.897991137,-182.593401397,935.026593544],[0.251312287,0.65660519,0.654305887,0.278559805],[-1,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget invalid_drop:=[[1092.897986464,247.275188638,935.026598002],[0.251312285,0.656605198,0.654305885,0.278559795],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget clear_pt:=[[640.414287616,-606.478358595,1050.737981856],[0.338782558,0.857016152,0.353227751,0.161182657],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget pickp:=[[-839.854354762,-895.910435279,536.485036426],[0.713222679,0.700670782,0.006191392,0.01831755],[-2,-1,1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    CONST robtarget home:=[[749.999995643,24,997.364],[0.012201497,-0.70700156,-0.707001444,-0.012201468],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
+    PERS tooldata Servo:=[TRUE,[[24,0,124.136],[0.999851,0,0.0172555,0]],[0.215,[10.3925,12.3,48.8705],[1,0,0,0],0.00021,0.00024,0.00009]];
+    
+PROC main() 
+    Robot_Home; 
+    IF DI7 = 1 PPNP_Home;  !DI7 0 when PPNP is HOME
+    REQUEST_PART;
+    WaitDI DI12,1;          !Part present on conveyor
+    PPNP_Sequence;          !move part from conveyor to stand
+    Color_Sorting; 
+    Robot_Home; 
+ENDPROC 
+
+PROC Robot_Home () 
+    Movej home, v800, z50, Servo; 
+    WaitDI DI1,1;      !Robot home
+ENDPROC 
+
+PROC REQUEST_PART()
+    PulseDO DO13;           !Reset color
+    PulseDO DO12;           !Conveyor, request part
+ENDPROC
+
+PROC Color_Sorting () 
+    Pick;                 ! PICK PART AND MOVE ABOVE BOXES   
+    IF DI13=1 AND DI14=0 THEN       Yellow;               !movement Sudroutine
+    ELSEIF DI13=0 AND DI14=1 THEN   Red;                  !movement Sudroutine
+    ELSE                            Invalid;              !movement Sudroutine
+    ENDIF 
+ENDPROC 
+
+PROC PPNP_Home () 
+    PPNP_UP;
+    PPNP_RET;
+    PPNP_SWING_CONV; 
+    PPNP_GRIPO; 
+    WaitDI DI7,0;   !PPNP home
+ENDPROC 
+
+PROC PPNP_Sequence () 
+    PPNP_EXTEND; 
+    PPNP_DOWN; 
+    PPNP_GRIPC; 
+    PPNP_UP;
+    PPNP_RET; 
+    PPNP_SWING_STAND; 
+    PPNP_EXTEND;
+    PPNP_DOWN;
+    PPNP_GRIPO; 
+    PPNP_HOME; 
+
+ENDPROC
+
+
+PROC Pick () 
+    WaitDI DI16, 1;         !Part present on stand
+    Open_grip; 
+    MoveJ offs(pickp, 0, 0, 120), v800, z50, Servo; 
+    MoveJ offs(pickp, 0, 0, 80), v200, z0, Servo; 
+    MoveL pickp, v100, fine, Servo; 
+    Close_grip; 
+    MoveL offs(pickp, 0, 0, 80), v100, z50, Servo; 
+    MoveJ clear_pt2, v500, z50, Servo;
+    MoveJ clear_pt, v500, z50,Servo;
+ENDPROC 
+PROC Open_grip() 
+    Reset DO1; 
+    Waittime 1; 
+ENDPROC 
+PROC Close_grip ()
+    Set DO1; 
+    Waittime 1; 
+ENDPROC 
+
+  !!! COLOR MOVEMENTS !!!
+PROC Yellow () 
+    MoveJ offs(yellow_drop,0,0,80),v200,z0,Servo;
+    MoveJ yellow_drop, v100, fine, Servo; 
+    Open_grip; 
+ENDPROC 
+PROC Red () 
+    MoveJ offs(red_drop,0,0,80), v200, z0, Servo;
+    MoveJ red_drop, v100, fine, Servo; 
+    Open_grip; 
+ENDPROC 
+PROC Invalid () 
+    MoveJ offs(invalid_drop,0,0,80), v200, z0, Servo;
+    MoveJ invalid_drop, v100, fine, Servo; 
+    Open_grip; 
+ENDPROC 
+
+
+PROC PPNP_UP () 
+    Reset DO6; 
+    Set DO5; 
+    WaitTime 1; 
+ENDPROC 
+PROC PPNP_DOWN () 
+    Reset DO5; 
+    Set DO6; 
+    WaitTime 1; 
+ENDPROC
+PROC PPNP_SWING_STAND () 
+    Reset DO8; 
+    Set DO7; 
+    WaitTime 1; 
+ENDPROC
+PROC PPNP_SWING_CONV () 
+    Reset DO7; 
+    Set DO8; 
+    WaitTime 1; 
+ENDPROC 
+PROC PPNP_EXTEND () 
+    Reset DO10; 
+    Set DO9; 
+    WaitTime 1; 
+ENDPROC 
+PROC PPNP_RET () 
+    Reset DO9; 
+    Set DO10; 
+    WaitTime 0.5; 
+ENDPROC 
+PROC PPNP_GRIPO () 
+    Reset DO11; 
+    WaitTime 1; 
+ENDPROC 
+PROC PPNP_GRIPC () 
+    Set DO11; 
+    WaitTime 1; 
+ENDPROC 
+
+! DUMMY
+PROC Teach()
+    MoveL pickp,v1000,z100,Servo\WObj:=wobj0;
+    MoveL clear_pt2,v1000,z100,Servo\WObj:=wobj0;
+    MoveL yellow_drop,v1000,z100,Servo\WObj:=wobj0;
+    MoveL red_drop,v1000,z100,Servo\WObj:=wobj0;
+    MoveL invalid_drop,v1000,z100,Servo\WObj:=wobj0;
+    MoveL clear_pt,v1000,z100,Servo\WObj:=wobj0;
+    MoveL home,v1000,z100,Servo\WObj:=wobj0;
+ENDPROC
+
+ENDMODULE
