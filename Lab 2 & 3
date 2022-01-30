@@ -1,12 +1,4 @@
-MODULE Module1 !Maintain the module name as Module1 for some reason the program doesn't run well it other name.
-!    CONST robtarget clear_pt2:=[[-606.271010043,-908.070022175,1068.169008831],[0.382626429,0.923741989,0.00660333,0.015942066],[-2,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-!    CONST robtarget yellow_drop:=[[1092.897987517,28.790760268,935.026601797],[0.251312287,0.656605186,0.654305892,0.278559803],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-!    CONST robtarget red_drop:=[[1092.897991137,-182.593401397,935.026593544],[0.251312287,0.65660519,0.654305887,0.278559805],[-1,0,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-!    CONST robtarget invalid_drop:=[[1092.897986464,247.275188638,935.026598002],[0.251312285,0.656605198,0.654305885,0.278559795],[0,-1,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-!    CONST robtarget clear_pt:=[[640.414287616,-606.478358595,1050.737981856],[0.338782558,0.857016152,0.353227751,0.161182657],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-!    CONST robtarget pickp:=[[-839.854354762,-895.910435279,536.485036426],[0.713222679,0.700670782,0.006191392,0.01831755],[-2,-1,1,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-!    CONST robtarget home:=[[749.999995643,24,997.364],[0.012201497,-0.70700156,-0.707001444,-0.012201468],[-1,0,1,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
-!    PERS tooldata Servo:=[TRUE,[[24,0,124.136],[0.999851,0,0.0172555,0]],[0.215,[10.3925,12.3,48.8705],[1,0,0,0],0.00021,0.00024,0.00009]];
+MODULE Module1
     CONST robtarget home:=[[905.329241265,-0.000355201,1097.158035643],[0.499995645,0.000004566,0.866027918,-0.00000192],[0,-1,0,0],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
     CONST robtarget Pick:=[[-855.650481109,-879.6815735,538.26500977],[0.459420878,-0.557005308,-0.545328613,0.425786622],[-2,0,-2,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
     CONST robtarget Drop:=[[1070.124956816,-226.534384055,961.94271237],[0.426943892,-0.44080113,0.561394557,-0.555202151],[-1,0,-2,1],[9E+09,9E+09,9E+09,9E+09,9E+09,9E+09]];
@@ -15,26 +7,24 @@ MODULE Module1 !Maintain the module name as Module1 for some reason the program 
     
 PROC main()
     counter:=counter+1;
-!    TPWrite "The robot is counting, " \Num:=counter; begins with 1 to reset all DOs to avoid signal conflicts at restart, after repeat the step the value of counter is 2 so resetdos don't execute
     IF counter=1 THEN       !first sequence, should send PPNP and Robot home no matter what 
         ResetDOs;
         PPNP_Home;
         Robot_Home;
     ENDIF
     IF DI1=0 Robot_Home;
-    IF DI7=0 PPNP_Home;  !DI7 1 when PPNP is HOME, just movng to home
+    IF DI7=0 PPNP_Home;  !DI7 1 when PPNP is HOME, just moving to home
     Request_Part;
-    PPNP_Sequence;          !Part present on conveyor
-          !move part from conveyor to stand
+    !Wait DI12 moved to the first line of PPNP_Sequence
+    PPNP_Sequence;
     Color_Sorting; 
     Robot_Home;
     counter:=1;
-!    TPWrite "The robot is counting, " \Num:=counter; when it repeats the process reset the value again to 1 to maintain the counter in a lower number.
 ENDPROC 
 
 PROC Robot_Home () 
     Movej home, v800, z50, Servo\WObj:=wobj0;
-    WaitDI DI1,1;      !Robot home
+    WaitDI DI1,1;      !Wait Robot home
 ENDPROC 
 
 PROC Request_Part()
@@ -64,7 +54,7 @@ PROC PPNP_Home ()
 ENDPROC 
 
 PROC PPNP_Sequence ()
-    WaitDI DI12,1;
+    WaitDI DI12,1; !same idea as WaitDI DI16 on Pick_up
     PPNP_EXTEND;  
     PPNP_GRIPC; 
     PPNP_UP;
@@ -77,42 +67,45 @@ PROC PPNP_Sequence ()
     PPNP_HOME; 
 ENDPROC
 
-
 PROC Pick_up () 
-    WaitDI DI16, 1;         !Part present on stand
+    WaitDI DI16, 1;         !Part present on stand, professor suggested this change
     Open_grip; 
     MoveJ offs(Pick, 0, 0, 120), v800, z50, Servo\WObj:=wobj0; 
-    MoveJ offs(Pick, 0, 0, 80), v200, z0, Servo\WObj:=wobj0; 
-    MoveL Pick, v100, fine, Servo; 
+    MoveJ offs(Pick, 0, 0, 80), v200, z0, Servo\WObj:=wobj0;        !Use z0 for drop and pick to move the robot at the exact desired position without stop, professor suggested this change and explained
+    MoveL Pick, v100, fine, Servo;      !Use less speed at picking the object and displacing it to drop point because the object may fall, professor suggested this change and explained.
     Close_grip; 
     MoveL offs(Pick, 0, 0, 80), v100, z50, Servo\WObj:=wobj0;
-ENDPROC 
+ENDPROC
+
 PROC Open_grip() 
     Reset DO1; 
     Waittime 1; 
-ENDPROC 
+ENDPROC
+
 PROC Close_grip ()
     Set DO1; 
     Waittime 1; 
 ENDPROC 
 
   !!! COLOR MOVEMENTS !!!
-PROC Yellow ()          !Points changed for Offsets  
+
+PROC Yellow ()
     MoveJ Offs(Drop,0,213,50),v200,z0,Servo\WObj:=wobj0;
     MoveL Offs(Drop,0,213,0),v100,fine,Servo\WObj:=wobj0;
     Open_grip; 
-ENDPROC 
+ENDPROC
+
 PROC Red () 
     MoveJ Offs(Drop,0,0,80),v200,z0,Servo\WObj:=wobj0;
     MoveL Drop,v100,fine,Servo\WObj:=wobj0;
     Open_grip; 
-ENDPROC 
+ENDPROC
+
 PROC Invalid () 
     MoveJ Offs(Drop,0,426,50),v200,z50,Servo\WObj:=wobj0;
     MoveL Offs(Drop,0,426,0),v100,fine,Servo\WObj:=wobj0;
     Open_grip; 
 ENDPROC 
-
 
 PROC PPNP_UP () 
     Reset DO6;
@@ -159,14 +152,9 @@ PROC PPNP_GRIPC ()
     WaitTime 1; 
 ENDPROC 
 
-! DUMMY
+!------------DUMMY-------------------
+
 PROC Teach()        !simplifying points, reducing the space in the memory (hypothesis: maybe this put more load on the CPU)
-!    MoveL pickp,v1000,z100,Servo\WObj:=wobj0;
-!    MoveL clear_pt2,v1000,z100,Servo\WObj:=wobj0;
-!    MoveL yellow_drop,v1000,z100,Servo\WObj:=wobj0;
-!    MoveL red_drop,v1000,z100,Servo\WObj:=wobj0;
-!    MoveL invalid_drop,v1000,z100,Servo\WObj:=wobj0;
-!    MoveL clear_pt,v1000,z100,Servo\WObj:=wobj0;  
     MoveL Pick,v1000,z100,Servo\WObj:=wobj0;
     MoveL Clr_pt,v1000,z100,Servo\WObj:=wobj0;
     MoveL Drop,v1000,z100,Servo\WObj:=wobj0;
@@ -180,17 +168,13 @@ PROC ResetDOs () !-------------Avoid signal conflicts, better reset everything
         Reset DO2;
         Reset DO3;
         Reset DO4;
-!        Set DO5;
         Reset DO5;
         Reset DO6;
         Reset DO7;
-!        Set DO8;
         Reset DO8;
         Reset DO9;
-!        Set DO10;
         Reset DO10;
         Reset DO11;
-!        Set DO12;
         Reset DO12;
         Reset DO13;
         Reset DO14;
